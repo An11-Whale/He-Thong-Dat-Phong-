@@ -1,97 +1,125 @@
-# YÊU CẦU PHI CHỨC NĂNG
-## Nền tảng IoT hỗ trợ UAV giám sát nông trại và thu thập dữ liệu cảm biến
+IoT Platform for UAV-Assisted Farm Monitoring and Sensor Data Collection
 
-## 1. Mục đích
+1. Purpose
 
-Tài liệu này quy định các yêu cầu về chất lượng và điều kiện vận hành của hệ thống, bao gồm hiệu năng, bảo mật, độ tin cậy, khả năng đồng bộ dữ liệu, khả năng mở rộng, tính tương thích và tính dễ sử dụng.
+This document defines the quality attributes and operational constraints of the system, encompassing performance, security, reliability, data synchronization capability, scalability, compatibility, and usability.
 
-Các yêu cầu phi chức năng bổ sung cho yêu cầu chức năng, nhằm xác định hệ thống phải hoạt động ở mức chất lượng nào.
+These non-functional requirements complement the functional requirements by establishing the quality baseline under which the system must operate.
 
-## 2. Yêu cầu phi chức năng
+2. Non-Functional Requirements
 
-### NFR01 — Hiệu năng giao diện và API
+NFR01 — UI and API Performance
 
-- Các thao tác Web thông thường phải phản hồi trong khoảng 3 giây trong điều kiện tải và môi trường kiểm thử đã thống nhất.
-- Các API truy vấn dữ liệu cảm biến và trạng thái thiết bị phải đáp ứng thời gian phản hồi đã xác định trong kế hoạch kiểm thử.
-- Thời gian phản hồi được đo trong điều kiện mạng, dữ liệu và tải thử nghiệm được ghi nhận rõ ràng.
+Standard Web interactions must respond within 3 seconds under agreed test loads and environments.
 
-**Tiêu chí đánh giá:** Thực hiện các thao tác đại diện nhiều lần và ghi nhận thời gian phản hồi; báo cáo kết quả theo điều kiện thử nghiệm.
+APIs querying sensor data and device status must meet response time thresholds specified in the Master Test Plan.
 
-### NFR02 — Tính kịp thời của dữ liệu
+Response times shall be measured under clearly documented network, data volume, and test load conditions.
 
-- Sau khi máy chủ nhận và lưu thành công dữ liệu mới, giao diện giám sát phải cập nhật dữ liệu trong vòng 10 giây trong điều kiện vận hành bình thường đã thống nhất.
-- Giao diện phải phân biệt thời điểm cảm biến đo với thời điểm máy chủ nhận dữ liệu.
-- Dữ liệu vượt quá thời gian cập nhật cho phép phải được đánh dấu là dữ liệu cũ hoặc mất cập nhật.
+Evaluation Criteria: Execute representative transactions repeatedly, record response times, and report results mapped to test environment parameters.
 
-**Tiêu chí đánh giá:** Ghi nhận thời điểm máy chủ lưu dữ liệu và thời điểm dữ liệu mới xuất hiện trên giao diện trong môi trường kiểm thử.
+NFR02 — Data Timeliness & Freshness
 
-### NFR03 — Bảo mật và kiểm soát truy cập
+After the central server successfully receives and stores new data, the monitoring interface must reflect the updated data within 10 seconds under standard operating conditions.
 
-- Hệ thống phải yêu cầu xác thực đối với các chức năng được bảo vệ.
-- Quyền truy cập phải được kiểm tra tại Backend theo vai trò và phạm vi dữ liệu được phép truy cập.
-- Mật khẩu không được lưu dưới dạng văn bản thuần.
-- Thông tin bí mật như khóa API và thông tin kết nối cơ sở dữ liệu không được đưa trực tiếp vào mã nguồn công khai.
-- Kết nối mạng giữa các thành phần phải sử dụng cơ chế bảo vệ phù hợp với môi trường triển khai; HTTPS được sử dụng khi triển khai qua mạng.
-- Các lỗi xác thực và truy cập trái phép phải được xử lý mà không làm lộ thông tin nhạy cảm.
+The user interface must explicitly distinguish between the sensor measurement timestamp and the server receipt timestamp.
 
-**Tiêu chí đánh giá:** Kiểm thử truy cập trái phép, truy cập sai vai trò, cấu hình bí mật và xử lý lỗi xác thực.
+Data exceeding permissible update intervals must be flagged as stale or out-of-date.
 
-### NFR04 — Độ tin cậy và tính toàn vẹn dữ liệu
+Evaluation Criteria: Record and compare the timestamp of server database insertion against the timestamp when the new data renders on the UI within the test environment.
 
-- Dữ liệu đã được xác nhận lưu thành công phải được duy trì theo chính sách lưu trữ và sao lưu của hệ thống.
-- Quá trình đồng bộ phải hạn chế mất dữ liệu và không tạo bản ghi trùng khi một bản ghi được gửi lại.
-- Các bản ghi lỗi phải được xử lý theo quy tắc đã xác định, không được âm thầm coi là dữ liệu hợp lệ.
-- Các lỗi đồng bộ phải có thông tin đủ để xác định và thử lại khi phù hợp.
+NFR03 — Security and Access Control
 
-**Tiêu chí đánh giá:** Mô phỏng mất kết nối, gửi lại dữ liệu, gửi dữ liệu lỗi và kiểm tra số lượng, nội dung bản ghi sau đồng bộ.
+The system must enforce authentication for all protected endpoints and features.
 
-### NFR05 — Khả năng hoạt động khi mất Internet
+Access permissions must be validated at the Backend layer according to user roles and data scopes.
 
-- Gateway phải lưu được dữ liệu thu thập trong thời gian mất Internet, trong giới hạn dung lượng lưu trữ thực tế.
-- Gateway phải có cơ chế thử đồng bộ lại khi kết nối được khôi phục.
-- Dữ liệu chưa đồng bộ phải được phân biệt với dữ liệu đã đồng bộ.
-- Chính sách xử lý khi bộ nhớ Gateway gần đầy phải được xác định trước khi triển khai thực tế.
+Passwords must never be stored in plain text.
 
-**Tiêu chí đánh giá:** Ngắt kết nối mạng, tiếp tục thu thập dữ liệu, khôi phục kết nối và xác nhận dữ liệu được đồng bộ đầy đủ trong giới hạn môi trường thử nghiệm.
+Sensitive credentials such as API keys and database connection strings must not be hardcoded in public source code repositories.
 
-### NFR06 — Tính sẵn sàng và khôi phục
+Network communication between system components must use protocols suited to the deployment environment; HTTPS is mandatory for public network deployments.
 
-- Mục tiêu sẵn sàng của hệ thống là 99% trong điều kiện vận hành bình thường, nếu môi trường triển khai cho phép đo lường và đáp ứng mục tiêu này.
-- Cơ sở dữ liệu phải có phương án sao lưu và khôi phục phù hợp.
-- Quy trình khôi phục phải được kiểm thử trước khi bàn giao.
-- Các lỗi dịch vụ phải được ghi nhận để hỗ trợ chẩn đoán.
+Authentication failures and unauthorized access attempts must be handled gracefully without disclosing sensitive internal system details.
 
-**Tiêu chí đánh giá:** Ghi nhận thời gian hoạt động, thời gian gián đoạn và kết quả thử khôi phục dữ liệu.
+Evaluation Criteria: Conduct security testing covering unauthorized access, privilege escalation/incorrect roles, credential configuration audits, and authentication error handling.
 
-### NFR07 — Khả năng mở rộng và bảo trì
+NFR04 — Reliability and Data Integrity
 
-- Kiến trúc phải cho phép bổ sung trang trại, phân khu, cảm biến, Gateway và nhiệm vụ mà không phải thiết kế lại toàn bộ hệ thống.
-- Các thành phần quản lý người dùng, cảm biến, dữ liệu đo, nhiệm vụ và cảnh báo phải được tổ chức rõ ràng.
-- API và cấu trúc dữ liệu phải được tài liệu hóa.
-- Mã nguồn phải có cấu trúc nhất quán, dễ kiểm thử và bảo trì.
+Data confirmed as successfully stored must be preserved in compliance with system storage and backup policies.
 
-**Tiêu chí đánh giá:** Có thể bổ sung một cảm biến và gán vào phân khu thông qua các chức năng đã thiết kế mà không cần thay đổi cấu trúc cốt lõi của hệ thống.
+The synchronization process must minimize data loss and prevent duplicate database records when identical data packets are retransmitted.
 
-### NFR08 — Tính tương thích
+Erroneous records must be processed according to predefined validation rules and never silently ingested as valid data.
 
-- Giao diện Web phải hoạt động trên các phiên bản trình duyệt Chrome, Edge và Firefox được nhóm lựa chọn để kiểm thử.
-- Các thành phần Backend, cơ sở dữ liệu và Gateway phải giao tiếp theo giao thức và định dạng dữ liệu đã thống nhất.
-- Môi trường chạy và các phiên bản phụ thuộc quan trọng phải được ghi nhận trong tài liệu triển khai.
+Synchronization failures must capture sufficient log detail to enable diagnosis and retry attempts where appropriate.
 
-**Tiêu chí đánh giá:** Thực hiện các thao tác chính trên những trình duyệt và môi trường nằm trong phạm vi kiểm thử.
+Evaluation Criteria: Simulate network disconnections, data retransmissions, and corrupted payload submissions; verify record counts and content accuracy post-synchronization.
 
-### NFR09 — Tính dễ sử dụng
+NFR05 — Offline Operation Capability
 
-- Giao diện phải thể hiện rõ trạng thái cảm biến, trạng thái nhiệm vụ và mức độ cảnh báo.
-- Dữ liệu lịch sử phải có cách lọc và trình bày dễ hiểu.
-- Thông báo lỗi phải cho người dùng biết vấn đề xảy ra và hành động tiếp theo nếu có thể.
-- Bản đồ, biểu đồ và bảng dữ liệu phải có nhãn, đơn vị đo và chú giải phù hợp.
+The Gateway must persist collected data locally during internet outages, subject to physical storage capacity limits.
 
-**Tiêu chí đánh giá:** Người dùng thử nghiệm có thể thực hiện các tác vụ chính như xem dữ liệu cảm biến, tìm cảnh báo và xem kết quả nhiệm vụ theo hướng dẫn.
+The Gateway must implement an automatic retry mechanism to resynchronize data once connectivity is restored.
 
-## 3. Nguyên tắc nghiệm thu
+Unsynchronized local data must be clearly distinguished from synchronized records.
 
-- Mỗi yêu cầu phi chức năng phải có cách đo hoặc kiểm thử tương ứng.
-- Các mục tiêu định lượng phải được đánh giá trong điều kiện thử nghiệm được ghi rõ.
-- Các yêu cầu phụ thuộc phần cứng, hạ tầng mạng hoặc dịch vụ bên ngoài phải được đánh giá theo môi trường thực tế mà nhóm có thể triển khai.
-- Kết quả kiểm thử phải được ghi nhận để làm căn cứ xác nhận mức độ đáp ứng của hệ thống.
+Storage management policies (e.g., memory threshold handling) must be defined prior to production deployment.
+
+Evaluation Criteria: Disconnect network connectivity, continue data collection, restore connectivity, and verify complete data synchronization within test environment limits.
+
+NFR06 — Availability and Recovery
+
+The system targets an operational uptime of 99% under normal operating conditions, provided the target deployment environment permits such measurement and SLAs.
+
+The database layer must implement appropriate backup and disaster recovery strategies.
+
+Data recovery procedures must be tested and verified prior to system handover.
+
+Service errors and system faults must be logged to support root-cause diagnosis.
+
+Evaluation Criteria: Record system uptime, service disruption durations, and document the outcomes of simulated data recovery exercises.
+
+NFR07 — Scalability and Maintainability
+
+The architecture must support the addition of farms, sub-zones, sensors, Gateways, and collection tasks without requiring a full system redesign.
+
+Core software modules—such as user management, sensor registry, measurement telemetry, task management, and alerts—must maintain clean separation of concerns.
+
+APIs and data structures must be fully documented.
+
+The codebase must adhere to consistent structural standards, facilitating testability and long-term maintenance.
+
+Evaluation Criteria: Successfully register a new sensor and assign it to a sub-zone using established system workflows without modifying the core system architecture.
+
+NFR08 — Compatibility
+
+The Web user interface must operate correctly across agreed test browser versions of Google Chrome, Microsoft Edge, and Mozilla Firefox.
+
+Backend components, database instances, and Gateways must communicate using agreed protocols and structured data formats.
+
+Runtime environments and critical software dependencies must be documented in the deployment guide.
+
+Evaluation Criteria: Perform core system workflows across designated web browsers and target execution environments within the test scope.
+
+NFR09 — Usability
+
+The UI must clearly convey sensor statuses, task progress, and alert severity levels.
+
+Historical data must offer intuitive filtering mechanisms and accessible visual representations.
+
+Error notifications should inform users of the underlying issue and suggest corrective actions where applicable.
+
+Maps, charts, and data tables must feature clear labels, measurement units, and legends.
+
+Evaluation Criteria: Test users independently execute key operational workflows (e.g., viewing sensor data, querying alerts, inspecting task outcomes) based on provided user documentation.
+
+3. Acceptance Principles
+
+Every non-functional requirement must correspond to a measurable metric or formal test case.
+
+Quantitative performance metrics must be evaluated under explicitly documented test conditions.
+
+Requirements contingent upon physical hardware, network infrastructure, or external APIs shall be evaluated based on the actual testbed environment available to the team.
+
+Test results must be formally recorded to serve as the baseline for system acceptance verification.
