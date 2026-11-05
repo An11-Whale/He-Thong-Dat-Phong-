@@ -1,719 +1,541 @@
+# UAV-Assisted IoT Platform for Farm Monitoring and Sensor Data Collection
 
+An IoT-based farm monitoring platform that uses UAV-mounted mobile gateways to collect environmental data from distributed sensor nodes, synchronize measurements, and provide centralized farm monitoring.
 
-UAV-Assisted IoT Platform for Farm Monitoring and Sensor Data Collection
+<p align="center">
+  **IoT · UAV Data Collection · Edge Computing · Spring Boot · React**
+</p>
 
-Project Type: Internet of Things (IoT), UAV-Assisted Data Collection, Web-Based Monitoring System
+---
 
-1. Project Objectives
+## 1. Project Overview
 
-The objective of this project is to develop an IoT platform that uses Unmanned Aerial Vehicles (UAVs) equipped with Mobile Gateways to collect environmental data from distributed sensor nodes across different farm zones.
+The **UAV-Assisted IoT Platform** is designed to collect, process, store, and visualize environmental data from distributed sensor nodes across agricultural areas.
 
-The system provides a centralized platform for receiving, validating, storing, synchronizing, and visualizing sensor data. It is designed to operate even when Internet connectivity is unstable through offline data storage and automatic synchronization.
+Instead of installing fixed gateways throughout the farm, the system uses UAV-mounted Mobile Gateways to approach sensor nodes, retrieve stored measurements, and transfer collected data to a centralized Backend.
 
-Final Goal:
+The platform supports offline data storage and automatic synchronization to ensure reliable data collection in environments with unstable Internet connectivity.
 
-Enable farm managers to monitor farm conditions, detect abnormal environmental values, and make data-driven decisions without manually visiting and checking individual sensor devices.
+### Project Objectives
 
-2. Problems to Be Solved
+- Collect environmental data from distributed sensor nodes.
+- Reduce the need for fixed gateway infrastructure.
+- Provide reliable data collection through UAV-mounted Mobile Gateways.
+- Support offline data storage and automatic synchronization.
+- Centralize sensor data management and monitoring.
+- Detect abnormal environmental conditions through configurable thresholds.
+- Provide historical data visualization and reporting.
 
-Problem
+### Final Goal
 
-Cause
+Enable farm managers to monitor environmental conditions, detect abnormal values, and make data-driven decisions without manually visiting individual sensor devices.
 
-Proposed Solution
+---
 
-Time-consuming data collection
+## 2. Problems and Solutions
 
-Sensor nodes are distributed across large farm areas
+| Problem | Proposed Solution |
+|---|---|
+| Time-consuming data collection | Use UAV-mounted gateways to collect data from distributed sensors. |
+| High infrastructure costs | Use mobile gateways instead of installing fixed gateways in every farm zone. |
+| Unstable Internet connectivity | Store collected data locally and synchronize when connectivity is restored. |
+| Distributed sensor data | Centralize measurements through the Backend and PostgreSQL. |
+| Difficult environmental monitoring | Provide dashboards, historical charts, and zone comparisons. |
+| Difficult anomaly detection | Evaluate measurements against configurable thresholds and generate alerts. |
 
-UAV-mounted Mobile Gateways collect data from distributed Sensor Nodes
+---
 
-High infrastructure costs
+## 3. System Architecture
 
-Installing fixed gateways in every farm zone can be expensive
+The platform consists of five main architectural components:
 
-Use UAV Mobile Gateways to access multiple sensor locations
+1. Sensor Nodes
+2. UAV Mobile Gateway
+3. Backend and Mission Management
+4. Database
+5. Web Dashboard
 
-Unstable Internet connectivity
+### High-Level Architecture
 
-Remote farm areas may experience network interruptions
+```mermaid
+flowchart TB
+    subgraph Farm["Farm Environment"]
+        SN["Sensor Nodes<br/>ESP32 + Environmental Sensors"]
+    end
 
-Store data locally and synchronize it when connectivity is restored
+    subgraph Edge["UAV Edge Layer"]
+        GW["UAV Mobile Gateway<br/>Raspberry Pi + Python"]
+        LOCAL[("SQLite<br/>Offline Storage")]
+    end
 
-Distributed sensor data
+    subgraph Cloud["Central Backend Layer"]
+        API["Spring Boot<br/>REST API"]
+        MM["Mission Management"]
+        DB[("PostgreSQL")]
+        ALERT["Alert Management"]
+    end
 
-Measurements come from multiple sensors and farm zones
+    subgraph Frontend["Application Layer"]
+        UI["React Web Dashboard"]
+    end
 
-Centralize sensor data through the Backend and Database
+    SN <-->|"MQTT / Wi-Fi / LoRa"| GW
+    GW --> LOCAL
+    GW -->|"HTTPS / JSON"| API
+    API --> DB
+    API <--> MM
+    API --> ALERT
+    UI <-->|"HTTPS / REST API"| API
+```
 
-Difficult data monitoring
+### 3.1. Sensor and Monitoring Layer
 
-Lack o centralized monitoring and historical records
+**Purpose:** Measure environmental conditions at different locations within the farm.
 
-Provide dashboards, historical charts, and zone comparisons
+Supported environmental measurements:
 
-Difficult anomaly detection
-
-Environmental conditions are not continuously monitored
-
-Compare measurements against configured thresholds and generate alerts
-
-3. Main System Components
-
-3.1. Sensor and Monitoring Layer
-
-Purpose: Measure environmental conditions at different locations within the farm.
-
-The system collects the following measurements:
-
-Soil Moisture
-
-Air Temperature
-
-Air Humidity
-
-Light Intensity
-
-Soil pH
-
-Water Level
-
-Operating Process:
-
-Sensor Nodes periodically measure environmental parameters.
-
-Measurements are temporarily stored on the sensor devices.
-
-When a UAV Gateway approaches, the Sensor Node receives a data collection request.
-
-The Sensor Node authenticates the request and sends the stored measurements to the Gateway.
-
-3.2. UAV Mobile Gateway
-
-Purpose: Act as an intermediate communication and data collection unit between Sensor Nodes and the Central Backend.
-
-The Gateway is mounted on a UAV and performs the following responsibilities:
-
-Discover registered Sensor Nodes.
-
-Authenticate devices before collecting data.
-
-Request and receive sensor measurements.
-
-Record collection timestamps and location information.
-
-Store collected data locally when Internet connectivity is unavailable.
-
-Automatically synchronize stored data with the Backend when connectivity is restored.
-
-Scope Limitation: The Gateway handles data collection and communication. Direct UAV flight control is outside the scope of the initial implementation.
-
-3.3. Backend and Mission Management
-
-Purpose: Process system operations, manage centralized data, and coordinate data collection missions.
-
-Backend responsibilities:
-
-Authenticate users and manage access permissions.
-
-Manage farms, zones, and sensor devices.
-
-Receive data from UAV Gateways.
-
-Validate incoming measurements.
-
-Detect duplicate records.
-
-Store sensor measurements in the central database.
-
-Evaluate sensor measurements against configured thresholds.
-
-Generate alerts.
-
-Provide REST APIs for frontend applications.
-
-Mission Management responsibilities:
-
-Manage UAVs and Mobile Gateways.
-
-Create data collection missions.
-
-Select farms and Sensor Nodes for each mission.
-
-Configure mission waypoints.
-
-Track mission status when telemetry is available.
-
-Record successful and failed collection points and their failure reasons.
+- Soil Moisture
+- Air Temperature
+- Air Humidity
+- Light Intensity
+- Soil pH
+- Water Level
+
+**Operating Process:**
+
+1. Sensor Nodes periodically measure environmental parameters.
+2. Measurements are temporarily stored on the sensor devices.
+3. When a UAV Gateway approaches, the Sensor Node receives a collection request.
+4. The Sensor Node authenticates the request and sends stored measurements to the Gateway.
+
+**Proposed Technologies:**
+
+| Technology | Purpose |
+|---|---|
+| ESP32 | Microcontroller |
+| C/C++ | Sensor firmware development |
+| GPIO / ADC / I2C | Hardware communication interfaces |
+| ESP32 Flash Storage | Temporary measurement storage |
+| Wi-Fi / LoRa | Wireless communication |
+
+### 3.2. UAV Mobile Gateway
+
+**Purpose:** Act as an intermediate communication and data collection unit between Sensor Nodes and the central Backend.
+
+**Responsibilities:**
+
+- Discover registered Sensor Nodes.
+- Authenticate devices before collecting data.
+- Request and receive sensor measurements.
+- Record collection timestamps and location information.
+- Store measurements locally when Internet connectivity is unavailable.
+- Automatically synchronize stored measurements when connectivity is restored.
+
+**Proposed Technologies:**
+
+| Technology | Purpose |
+|---|---|
+| Raspberry Pi 4 | Gateway hardware prototype |
+| Raspberry Pi OS | Operating system |
+| Python | Gateway application development |
+| SQLite | Offline data storage |
+| Eclipse Paho MQTT | MQTT communication |
+| Python HTTP Client | Backend communication |
+
+**Scope Limitation:** The Gateway handles data collection and communication. Direct UAV flight control is outside the scope of the initial implementation.
+
+### 3.3. Backend and Mission Management
+
+**Purpose:** Process system operations, manage centralized data, and coordinate data collection missions.
+
+**Backend Responsibilities:**
+
+- Authenticate users and manage access permissions.
+- Manage farms, zones, and sensor devices.
+- Receive measurements from UAV Gateways.
+- Validate incoming data.
+- Detect duplicate records.
+- Store measurements in PostgreSQL.
+- Evaluate measurements against configured thresholds.
+- Generate alerts.
+- Provide REST APIs for frontend applications.
+
+**Mission Management Responsibilities:**
+
+- Manage UAVs and Mobile Gateways.
+- Create data collection missions.
+- Select farms and Sensor Nodes for each mission.
+- Configure mission waypoints.
+- Track mission status when telemetry is available.
+- Record successful and failed collection points and failure reasons.
 
 Mission Management handles mission information and operational status. It does not directly control UAV flight operations.
 
-3.4. Web Dashboard
+**Proposed Technologies:**
 
-Purpose: Provide web interfaces for administrators and operators to manage and monitor the system.
+| Technology | Purpose |
+|---|---|
+| Java | Backend programming language |
+| Spring Boot | REST API development |
+| Spring Security | Authentication and authorization |
+| Spring Data JPA | Database access |
+| Hibernate | Object-relational mapping |
+| Maven | Build and dependency management |
+| JWT | Authentication tokens |
 
-Admin functions:
+### 3.4. Database Layer
 
-Manage users, farms, and farm zones.
+**Purpose:** Maintain centralized system information and historical sensor measurements.
 
-Monitor sensor locations and device status.
+**Central Database:** PostgreSQL
 
-View current and historical sensor measurements.
-
-Compare environmental data between farm zones.
-
-Configure alert thresholds.
-
-Manage alerts and view reports.
-
-Operator functions:
-
-Manage Sensor Nodes and UAV Gateways.
-
-Create data collection missions.
-
-Select sensors and configure waypoints.
-
-Monitor mission progress.
-
-Update mission status and operational notes.
-
-Review mission collection results.
-
-4. Main Functional Groups
-
-Functional Group
-
-Description
-
-User Management
-
-User login, logout, account management, and role-based access control
-
-Farm Management
-
-Manage farms, zones, and sensor locations
-
-Sensor Management
-
-Register, update, assign, and monitor Sensor Nodes
-
-Data Collection
-
-Discover, authenticate, and collect sensor measurements
-
-UAV and Gateway Management
-
-Manage UAV devices, Gateways, and their operational status
-
-Mission Management
-
-Create missions, select sensors, configure waypoints, and record collection results
-
-Offline Storage and Synchronization
-
-Store data locally, retry failed transmissions, and synchronize when connectivity is restored
-
-Data Monitoring
-
-Display maps, current measurements, historical charts, and zone comparisons
-
-Alert Management
-
-Detect abnormal values and device conditions based on configured thresholds
-
-Reporting
-
-Generate sensor, device, alert, and UAV mission reports
-
-5. Proposed Technology Stack
-
-The following technologies are proposed based on the system requirements and the responsibilities of each architectural layer.
-
-5.1. Frontend Technologies
-
-Technology
-
-Purpose
-
-Why It Is Used
-
-React.js
-
-Frontend framework
-
-Build reusable and interactive web interfaces
-
-JavaScript
-
-Programming language
-
-Implement frontend application logic
-
-HTML5 / CSS3
-
-User interface structure and styling
-
-Build responsive web pages
-
-Axios
-
-HTTP client
-
-Communicate with Backend REST APIs
-
-Leaflet.js
-
-Interactive mapping
-
-Display farms, zones, and sensor locations
-
-OpenStreetMap
-
-Map data provider
-
-Provide geographical map information
-
-Chart.js
-
-Data visualization
-
-Display current and historical sensor measurements
-
-5.2. Backend Technologies
-
-Technology
-
-Purpose
-
-Why It Is Used
-
-Java
-
-Backend programming language
-
-Implement system business logic
-
-Spring Boot
-
-Backend framework
-
-Build REST APIs and backend services
-
-Spring Security
-
-Authentication and authorization
-
-Protect APIs and enforce role-based access
-
-Spring Data JPA
-
-Database access
-
-Simplify relational data operations
-
-Hibernate
-
-ORM framework
-
-Map Java objects to database tables
-
-Maven
-
-Build and dependency management
-
-Manage libraries and build the application
-
-JWT
-
-Authentication token format
-
-Support authenticated API requests
-
-5.3. Database Technologies
-
-Technology
-
-Purpose
-
-Why It Is Used
-
-PostgreSQL
-
-Central relational database
-
-Store users, farms, sensors, measurements, missions, and alerts
-
-SQLite
-
-Gateway local database
-
-Store collected measurements when Internet connectivity is unavailable
+**Local Gateway Database:** SQLite
 
 Main database entities:
 
-Users
-
-Farms
-
-Zones
-
-Sensors
-
-Measurements
-
-UAVs
-
-Gateways
-
-Missions
-
-Waypoints
-
-Collection Results
-
-Alerts
-
-5.4. Sensor Node Technologies
-
-Technology
-
-Purpose
-
-Why It Is Used
-
-ESP32
-
-Microcontroller
-
-Control sensors and communicate with the Gateway
-
-C/C++
-
-Firmware programming
-
-Implement sensor measurement and communication logic
-
-GPIO / ADC / I2C
-
-Hardware interfaces
-
-Connect environmental sensors to ESP32
-
-ESP32 Flash Storage
-
-Temporary data storage
-
-Preserve measurements until the Gateway requests them
-
-Wi-Fi or LoRa
-
-Wireless communication
-
-Exchange collection requests and sensor measurements with the Gateway
-
-The communication technology will be selected based on the required communication range, hardware availability, and farm conditions.
-
-5.5. UAV Mobile Gateway Technologies
-
-Technology
-
-Purpose
-
-Why It Is Used
-
-Raspberry Pi 4
-
-Gateway hardware prototype
-
-Host the mobile data collection software
-
-Raspberry Pi OS
-
-Gateway operating system
-
-Provide the execution environment
-
-Python
-
-Gateway programming language
-
-Implement sensor discovery, data collection, and synchronization
-
-SQLite
-
-Local data storage
-
-Maintain an offline collection queue
-
-Eclipse Paho MQTT
-
-MQTT client library
-
-Support MQTT-based communication with Sensor Nodes
-
-Python HTTP Client
-
-Backend communication
-
-Send collected data to Backend REST APIs
-
-A laptop-based Gateway simulator may be used during development if physical UAV hardware is unavailable.
-
-5.6. Communication Technologies
-
-Communication Path
-
-Proposed Technology
-
-Purpose
-
-Sensor Node ↔ Gateway
-
-MQTT over Wi-Fi or LoRa-based communication
-
-Discover devices and exchange collection requests and measurement responses
-
-Gateway ↔ Backend
-
-HTTPS REST API with JSON
-
-Upload collected measurements and synchronization status
-
-Frontend ↔ Backend
-
-HTTPS REST API with JSON
-
-Retrieve and manage system information
-
-Backend ↔ Database
-
-Spring Data JPA / Hibernate
-
-Store and retrieve centralized data
-
-Proposed MQTT request-response model:
-
-Gateway publishes a collection request to the Sensor Node.
-
-Sensor Node receives the request and prepares stored measurements.
-
-Sensor Node publishes the measurement response.
-
-Gateway receives the response and stores it locally if necessary.
-
-Example topic structure:
-
-farm/{farmId}/sensor/{sensorId}/request
-
-farm/{farmId}/sensor/{sensorId}/data
-
-The MQTT broker can be hosted on the Gateway using Mosquitto for a local communication prototype.
-
-The communication protocol must define device authentication, message identification, delivery handling, and timeout behavior.
-
-5.7. Deployment and Development Tools
-
-Technology
-
-Purpose
-
-Ubuntu Server 24.04 LTS
-
-Server operating system
-
-Docker
-
-Containerize application services
-
-Docker Compose
-
-Run and manage multiple containers
-
-Nginx
-
-Reverse proxy and web server
-
-Git
-
-Source code version control
-
-GitHub
-
-Source code hosting and team collaboration
-
-GitHub Actions
-
-Automated build and test workflows
-
-Postman
-
-API development and testing
-
-IntelliJ IDEA
-
-Java and Spring Boot development
-
-Visual Studio Code
-
-Frontend, Gateway, and documentation development
-
-5.8. Testing Technologies
-
-Technology
-
-Purpose
-
-JUnit 5
-
-Backend unit testing
-
-Mockito
-
-Mock dependencies during backend testing
-
-Postman
-
-REST API testing
-
-Pytest
-
-Gateway software testing
-
-Browser Developer Tools
-
-Frontend debugging and testing
-
-6. System Operating Process
+- Users
+- Farms
+- Zones
+- Sensors
+- Measurements
+- UAVs
+- Gateways
+- Missions
+- Waypoints
+- Collection Results
+- Alerts
+
+### 3.5. Web Dashboard
+
+**Purpose:** Provide web interfaces for administrators and operators to manage and monitor the platform.
+
+**Admin Functions:**
+
+- Manage users, farms, and farm zones.
+- Monitor sensor locations and device status.
+- View current and historical measurements.
+- Compare environmental data between farm zones.
+- Configure alert thresholds.
+- Manage alerts and view reports.
+
+**Operator Functions:**
+
+- Manage Sensor Nodes and UAV Gateways.
+- Create data collection missions.
+- Select sensors and configure waypoints.
+- Monitor mission progress.
+- Update mission status and operational notes.
+- Review mission collection results.
+
+**Proposed Technologies:**
+
+| Technology | Purpose |
+|---|---|
+| React.js | Frontend framework |
+| JavaScript | Frontend application logic |
+| HTML5 / CSS3 | User interface |
+| Axios | HTTP client |
+| Leaflet.js | Interactive maps |
+| OpenStreetMap | Geographic map data |
+| Chart.js | Data visualization |
+
+---
+
+## 4. System Operating Workflow
 
 The system operates through six main stages.
 
-Stage 1 – Sensor Measurement
+```mermaid
+flowchart TD
+    A["1. Sensor Measurement"] --> B["2. UAV-Based Data Collection"]
+    B --> C["3. Gateway Local Storage"]
+    C --> D["4. Data Synchronization"]
+    D --> E["5. Centralized Monitoring"]
+    E --> F["6. Anomaly Detection and Alerts"]
+```
 
-Sensor Nodes periodically measure environmental parameters and temporarily store measurements on the devices until a Gateway approaches.
+### Stage 1 – Sensor Measurement
 
-Stage 2 – UAV-Based Data Collection
+Sensor Nodes periodically measure environmental parameters and temporarily store measurements on their devices.
+
+### Stage 2 – UAV-Based Data Collection
 
 The UAV carries the Mobile Gateway to sensor locations. The Gateway discovers registered devices, authenticates them, and requests stored measurements.
 
-Stage 3 – Gateway Data Storage
+### Stage 3 – Gateway Data Storage
 
-The Gateway receives sensor measurements and records collection timestamps and location information. If Internet connectivity is unavailable, the data is stored in SQLite.
+The Gateway receives measurements and records collection timestamps and location information.
 
-Stage 4 – Data Synchronization and Processing
+When Internet connectivity is unavailable, measurements are stored locally in SQLite.
 
-When Internet connectivity is restored, the Gateway automatically uploads stored measurements to the Backend.
+### Stage 4 – Data Synchronization and Processing
 
-The Backend validates incoming data, detects duplicate records, and stores valid measurements in PostgreSQL.
+When connectivity is restored:
 
-Stage 5 – Data Monitoring
+1. The Gateway uploads locally stored measurements to the Backend.
+2. The Backend validates incoming data.
+3. Duplicate records are detected.
+4. Valid measurements are stored in PostgreSQL.
 
-The Web Dashboard retrieves information from the Backend to display device status, current measurements, historical data, and mission results.
+### Stage 5 – Data Monitoring
 
-Stage 6 – Anomaly Detection and Notifications
+The Web Dashboard retrieves information from the Backend and displays:
 
-The Backend compares sensor measurements against configured thresholds. When abnormal conditions are detected, the system generates alerts and sends notifications through Web or Email.
+- Device status.
+- Current sensor measurements.
+- Historical environmental data.
+- Farm zone comparisons.
+- Mission results.
 
-7. Project Scope
+### Stage 6 – Anomaly Detection and Notifications
 
-7.1. In Scope
+The Backend compares sensor measurements against configured thresholds.
 
-Develop Backend REST APIs and a central database.
+When abnormal conditions are detected, the system generates alerts and sends notifications through Web or Email.
 
-Develop Admin and Operator web interfaces.
+---
 
-Develop or simulate environmental Sensor Nodes.
+## 5. Functional Modules
 
-Develop a UAV Mobile Gateway prototype.
+| Module | Main Responsibilities |
+|---|---|
+| User Management | Login, logout, account management, role-based access control |
+| Farm Management | Manage farms, zones, and sensor locations |
+| Sensor Management | Register, update, assign, and monitor Sensor Nodes |
+| Data Collection | Discover, authenticate, and collect sensor measurements |
+| UAV and Gateway Management | Manage UAV devices, Gateways, and operational status |
+| Mission Management | Create missions, configure waypoints, and track collection results |
+| Offline Storage and Synchronization | Store data locally, retry failed transmissions, and synchronize measurements |
+| Data Monitoring | Display maps, current measurements, historical charts, and zone comparisons |
+| Alert Management | Detect abnormal values and device conditions |
+| Reporting | Generate sensor, device, alert, and mission reports |
 
-Discover, authenticate, and collect sensor measurements.
+---
 
-Store collected data locally when Internet connectivity is unavailable.
+## 6. Communication Architecture
 
-Automatically synchronize data when connectivity is restored.
+The system uses different communication mechanisms depending on the connection between components.
 
-Manage UAV collection missions and mission results.
+| Communication Path | Technology | Purpose |
+|---|---|---|
+| Sensor Node ↔ Gateway | MQTT over Wi-Fi or LoRa-based communication | Exchange collection requests and measurement responses |
+| Gateway ↔ Backend | HTTPS REST API with JSON | Upload measurements and synchronization status |
+| Frontend ↔ Backend | HTTPS REST API with JSON | Retrieve and manage system information |
+| Backend ↔ Database | Spring Data JPA / Hibernate | Store and retrieve centralized data |
 
-Monitor current and historical sensor data.
+### MQTT Request-Response Model
 
-Generate threshold-based alerts.
+1. Gateway publishes a collection request to the Sensor Node.
+2. Sensor Node receives the request and prepares stored measurements.
+3. Sensor Node publishes the measurement response.
+4. Gateway receives the response and stores it locally when necessary.
 
-Generate sensor, device, alert, and mission reports.
+**Example MQTT Topics:**
 
-7.2. Out of Scope
+```text
+farm/{farmId}/sensor/{sensorId}/request
+farm/{farmId}/sensor/{sensorId}/data
+```
 
-Direct UAV flight control.
+The MQTT broker can be hosted on the Gateway using Mosquitto for the local communication prototype.
 
-AI-based autonomous flight path planning.
+The communication protocol must define:
 
-AI-based crop image analysis.
+- Device authentication.
+- Message identification.
+- Delivery handling.
+- Timeout behavior.
 
-AI-based crop yield prediction.
+---
 
-Automated agricultural decision-making using AI.
+## 7. Offline-First Architecture
 
-8. Project Directory Structure
+A key requirement of the platform is reliable operation in agricultural areas with unstable Internet connectivity.
 
-UAV-Assisted IoT Platform for Farm Monitoring and Sensor Data Collection/
+The system adopts an Edge-to-Cloud Hybrid approach combined with the Store-and-Forward mechanism.
+
+**Edge Layer:**
+
+- Collect measurements from Sensor Nodes.
+- Temporarily store measurements on the Gateway.
+- Maintain an offline synchronization queue.
+
+**Cloud Layer:**
+
+- Receive uploaded measurements.
+- Validate and detect duplicates.
+- Store centralized data.
+- Provide monitoring and reporting services.
+
+**Store-and-Forward Workflow:**
+
+```mermaid
+flowchart TD
+    A["Gateway Receives Sensor Data"] --> B["Store Data in SQLite"]
+    B --> C{"Internet Available?"}
+    C -->|"No"| D["Keep Data Locally"]
+    D --> C
+    C -->|"Yes"| E["Upload to Backend"]
+    E --> F{"Backend Accepted?"}
+    F -->|"No"| G["Keep Pending Data / Retry"]
+    G --> E
+    F -->|"Yes"| H["Mark Data as Synchronized"]
+```
+
+This mechanism helps prevent measurement loss during temporary network interruptions.
+
+---
+
+## 8. Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | React.js, JavaScript, HTML5, CSS3, Axios |
+| Mapping and Visualization | Leaflet.js, OpenStreetMap, Chart.js |
+| Backend | Java, Spring Boot, Spring Security, Spring Data JPA, Hibernate |
+| Authentication | JWT |
+| Central Database | PostgreSQL |
+| Gateway | Raspberry Pi 4, Raspberry Pi OS, Python |
+| Gateway Storage | SQLite |
+| Sensor Hardware | ESP32, C/C++ |
+| Sensor Communication | MQTT, Wi-Fi, LoRa |
+| Gateway Communication | HTTPS REST API, JSON |
+| Deployment | Ubuntu Server 24.04 LTS, Docker, Docker Compose, Nginx |
+| Version Control | Git, GitHub |
+| CI/CD | GitHub Actions |
+| API Testing | Postman |
+| Backend Testing | JUnit 5, Mockito |
+| Gateway Testing | Pytest |
+| Development IDEs | IntelliJ IDEA, Visual Studio Code |
+
+---
+
+## 9. Testing Strategy
+
+The project uses different testing tools to verify individual components and system integration.
+
+| Tool | Testing Purpose |
+|---|---|
+| JUnit 5 | Backend unit testing |
+| Mockito | Mock dependencies during backend testing |
+| Postman | REST API and integration testing |
+| Pytest | Gateway software testing |
+| Browser Developer Tools | Frontend debugging and testing |
+
+Key testing areas include:
+
+- Sensor data validation.
+- Device authentication.
+- Gateway data collection.
+- Offline data storage.
+- Automatic synchronization.
+- Duplicate measurement detection.
+- Mission management.
+- Threshold-based alert generation.
+- Frontend and Backend integration.
+
+---
+
+## 10. Project Scope
+
+### In Scope
+
+- Develop Backend REST APIs and a central database.
+- Develop Admin and Operator web interfaces.
+- Develop or simulate environmental Sensor Nodes.
+- Develop a UAV Mobile Gateway prototype.
+- Discover, authenticate, and collect sensor measurements.
+- Store collected data locally when Internet connectivity is unavailable.
+- Automatically synchronize data when connectivity is restored.
+- Manage UAV collection missions and mission results.
+- Monitor current and historical sensor data.
+- Generate threshold-based alerts.
+- Generate sensor, device, alert, and mission reports.
+
+### Out of Scope
+
+- Direct UAV flight control.
+- AI-based autonomous flight path planning.
+- AI-based crop image analysis.
+- AI-based crop yield prediction.
+- Automated agricultural decision-making using AI.
+
+---
+
+## 11. Project Directory Structure
+
+```text
+UAV-Assisted-IoT-Platform/
 │
 ├── deployment/
-│   └── # Deployment configurations
+│   └── Deployment configurations
 │
 ├── docs/
 │   ├── api/
-│   │   └── # REST API specifications
+│   │   └── REST API specifications
 │   ├── component_diagram/
-│   │   └── # Component Diagram
+│   │   └── Component diagrams
 │   ├── requirements/
-│   │   └── # Functional and Non-Functional Requirements
+│   │   └── Functional and Non-Functional Requirements
 │   └── uml/
-│       └── # Use Case, Class, Sequence, Activity, Deployment
+│       └── Use Case, Class, Sequence, Activity, Deployment
 │
 ├── src/
 │   ├── backend/
-│   │   └── # Spring Boot Backend APIs and business logic
+│   │   └── Spring Boot Backend APIs and business logic
 │   ├── dashboard/
-│   │   └── # React Admin and Operator interfaces
+│   │   └── React Admin and Operator interfaces
 │   ├── gateway/
-│   │   └── # UAV Mobile Gateway software
+│   │   └── UAV Mobile Gateway software
 │   ├── mission-management/
-│   │   └── # Mission management module, if maintained separately
+│   │   └── Mission management module
 │   └── sensor-simulator/
-│       └── # Sensor Node simulation
+│       └── Sensor Node simulation
 │
 ├── test/
-│   └── # Test cases and system testing
+│   └── Test cases and system testing
 │
 ├── .env.example
 ├── .gitignore
 └── README.md
+```
 
-9. Expected Project Deliverables
+---
+
+## 12. Expected Deliverables
 
 At the end of the project, the team is expected to deliver:
 
-Sensor Nodes capable of measuring and temporarily storing environmental data.
+1. Sensor Nodes capable of measuring and temporarily storing environmental data.
+2. A UAV Mobile Gateway capable of discovering, authenticating, and collecting sensor measurements.
+3. An offline storage and automatic synchronization mechanism.
+4. A Spring Boot Backend capable of receiving, validating, deduplicating, and storing measurements.
+5. A PostgreSQL database for centralized data management.
+6. Admin and Operator web interfaces.
+7. Mission management and collection result tracking.
+8. Dashboard visualization for current and historical sensor data.
+9. Threshold-based anomaly detection and notifications.
+10. Reports covering sensor data, devices, alerts, and UAV missions.
+11. Source code, deployment package, technical documentation, and user manuals.
 
-A UAV Mobile Gateway capable of discovering, authenticating, and collecting sensor measurements.
+---
 
-An offline storage and automatic synchronization mechanism.
-
-A Spring Boot Backend capable of receiving, validating, deduplicating, and storing measurements.
-
-PostgreSQL database for centralized data management.
-
-Admin and Operator web interfaces.
-
-Mission management and collection result tracking.
-
-Dashboard visualization for current and historical sensor data.
-
-Threshold-based anomaly detection and notifications.
-
-Reports covering sensor data, devices, alerts, and UAV missions.
-
-Source code, deployment package, technical documentation, and user manuals.
-
-Final Product:
+## 13. Final Product
 
 A working UAV-assisted IoT prototype that collects environmental data from distributed farm sensors, stores and synchronizes measurements reliably, manages collection missions, and provides a centralized platform for farm monitoring and decision support.
+
+**Core System Capabilities:**
+
+- UAV-assisted sensor data collection.
+- Edge-based offline storage.
+- Automatic data synchronization.
+- Centralized data management.
+- Real-time and historical monitoring.
+- Mission management.
+- Threshold-based anomaly detection.
+
+---
+
+<p align="center">
+  **UAV-Assisted IoT Platform for Smart Farm Monitoring**
+</p>
