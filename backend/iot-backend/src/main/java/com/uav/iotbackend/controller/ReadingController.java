@@ -1,5 +1,5 @@
 package com.uav.iotbackend.controller;
-
+import com.uav.iotbackend.exception.ConflictException;
 import com.uav.iotbackend.dto.ReadingRequest;
 import com.uav.iotbackend.dto.ReadingResponse;
 import com.uav.iotbackend.exception.BadRequestException;
@@ -52,7 +52,7 @@ public class ReadingController {
             try {
                 if (readingService.save(item).duplicated()) duplicated++;
                 else created++;
-            } catch (NotFoundException | BadRequestException e) {
+           } catch (NotFoundException | BadRequestException | ConflictException e) {
                 failed.add(Map.of("measurementId", item.measurementId(), "error", e.getMessage()));
             }
         }
