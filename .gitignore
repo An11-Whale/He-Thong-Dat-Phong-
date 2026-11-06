@@ -1,2 +1,4 @@
 
 .env
+# Bỏ qua dữ liệu giả lập
+src/mocks/
