@@ -1,4 +1,4 @@
-import type { HistoryPoint } from '../../types';
+import type { HistoryPoint } from '../F40-Implement-Sensor-Data-Packaging/sensorDataTypes';
 
 // Validates the history response consumed by the dashboard.
 // This does not validate sensor payloads at a backend ingestion endpoint.
