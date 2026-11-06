@@ -1,6 +1,6 @@
 import { Radio } from 'lucide-react';
-import type { SensorNode } from '../../types';
-import { StatusBadge } from '../../components/common/StatusBadge';
+import type { SensorNode } from '../F40-Implement-Sensor-Data-Packaging/sensorDataTypes';
+
 
 interface SensorIdentityProps {
   sensor: SensorNode;
@@ -28,7 +28,7 @@ export function SensorIdentity({
     <div className="selected-sensor">
       <span className="sensor-icon large"><Radio size={19} /></span>
       <div><b>{sensor.name}</b><small>{sensor.id} · {sensor.zoneName}</small></div>
-      {showStatus && <StatusBadge status={sensor.status} />}
+      {showStatus && <span>{sensor.status}</span>}
     </div>
   );
 }
