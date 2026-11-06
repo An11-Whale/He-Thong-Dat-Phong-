@@ -6,7 +6,7 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react';
-import type { MetricKey } from '../../types';
+import type { MetricKey } from '../F40-Implement-Sensor-Data-Packaging/sensorDataTypes';
 
 // Dashboard metric catalog only. This does not read or prototype physical sensors.
 export const METRICS: { key: MetricKey; label: string; icon: LucideIcon }[] = [
